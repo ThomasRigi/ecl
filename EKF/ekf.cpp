@@ -248,13 +248,6 @@ bool Ekf::initialiseTilt()
 
 void Ekf::predictState()
 {
-	if (!_earth_rate_initialised) {
-		if (_NED_origin_initialised) {
-			_earth_rate_NED = calcEarthRateNED((float)_pos_ref.lat_rad);
-			_earth_rate_initialised = true;
-		}
-	}
-
 	// apply imu bias corrections
 	Vector3f corrected_delta_ang = _imu_sample_delayed.delta_ang - _state.delta_ang_bias;
 	const Vector3f corrected_delta_vel = _imu_sample_delayed.delta_vel - _state.delta_vel_bias;
