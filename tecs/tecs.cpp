@@ -590,7 +590,7 @@ void TECS::_update_STE_rate_lim()
 
 void TECS::update_pitch_throttle(const matrix::Dcmf &rotMat, float pitch, float baro_altitude, float hgt_setpoint,
 				 float EAS_setpoint, float indicated_airspeed, float eas_to_tas, bool climb_out_setpoint, float pitch_min_climbout,
-				 float throttle_min, float throttle_max, float throttle_cruise, float pitch_limit_min, float pitch_limit_max)
+				 float throttle_min, float throttle_max, float throttle_cruise, float pitch_limit_min, float pitch_limit_max, bool rfm)
 {
 	// Calculate the time since last update (seconds)
 	uint64_t now = ecl_absolute_time();
@@ -624,7 +624,7 @@ void TECS::update_pitch_throttle(const matrix::Dcmf &rotMat, float pitch, float 
 	_detect_uncommanded_descent();
 
 	// Calculate the demanded true airspeed
-	_update_speed_setpoint();
+	_update_speed_setpoint(rfm);
 
 	// Calculate the demanded height
 	_update_height_setpoint(hgt_setpoint, baro_altitude);
