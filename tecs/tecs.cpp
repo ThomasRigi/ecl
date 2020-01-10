@@ -196,7 +196,7 @@ void TECS::_update_speed_states(float airspeed_setpoint, float indicated_airspee
 
 }
 
-void TECS::_update_speed_setpoint()
+void TECS::_update_speed_setpoint(bool rfm)
 {
 	// Set the airspeed demand to the minimum value if an underspeed or
 	// or a uncontrolled descent condition exists to maximise climb rate
@@ -204,14 +204,23 @@ void TECS::_update_speed_setpoint()
 		_TAS_setpoint = _TAS_min;
 	}
 
-	_TAS_setpoint = constrain(_TAS_setpoint, _TAS_min, _TAS_max);
+	//in RFM, disable lower airspeed limit
+	if(rfm) {
+		_TAS_setpoint = constrain(_TAS_setpoint, 0.0f, _TAS_max);
+	} else {
+		_TAS_setpoint = constrain(_TAS_setpoint, _TAS_min, _TAS_max);
+	}
 
 	// Calculate limits for the demanded rate of change of speed based on physical performance limits
 	// with a 50% margin to allow the total energy controller to correct for errors.
 	float velRateMax = 0.5f * _STE_rate_max / _tas_state;
 	float velRateMin = 0.5f * _STE_rate_min / _tas_state;
 
-	_TAS_setpoint_adj = constrain(_TAS_setpoint, _TAS_min, _TAS_max);
+	if(rfm) {
+		_TAS_setpoint_adj = constrain(_TAS_setpoint, 0.0f, _TAS_max);
+	} else {
+		_TAS_setpoint_adj = constrain(_TAS_setpoint, _TAS_min, _TAS_max);
+	}
 
 	// calculate the demanded rate of change of speed proportional to speed error
 	// and apply performance limits
@@ -581,7 +590,7 @@ void TECS::_update_STE_rate_lim()
 
 void TECS::update_pitch_throttle(const matrix::Dcmf &rotMat, float pitch, float baro_altitude, float hgt_setpoint,
 				 float EAS_setpoint, float indicated_airspeed, float eas_to_tas, bool climb_out_setpoint, float pitch_min_climbout,
-				 float throttle_min, float throttle_max, float throttle_cruise, float pitch_limit_min, float pitch_limit_max)
+				 float throttle_min, float throttle_max, float throttle_cruise, float pitch_limit_min, float pitch_limit_max, bool rfm)
 {
 	// Calculate the time since last update (seconds)
 	uint64_t now = ecl_absolute_time();
@@ -615,7 +624,7 @@ void TECS::update_pitch_throttle(const matrix::Dcmf &rotMat, float pitch, float 
 	_detect_uncommanded_descent();
 
 	// Calculate the demanded true airspeed
-	_update_speed_setpoint();
+	_update_speed_setpoint(rfm);
 
 	// Calculate the demanded height
 	_update_height_setpoint(hgt_setpoint, baro_altitude);
